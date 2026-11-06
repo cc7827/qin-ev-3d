@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#070a0f" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="format-detection" content="telephone=no" />
+<title>比亚迪 秦 EV · 控制单元安装位置 3D 标注</title>
+<meta name="description" content="比亚迪秦 EV 整车 10 个关键控制单元与总成的 3D 安装位置标注，点击部件可查看实拍解析图，支持手机与电脑浏览。" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="比亚迪 秦 EV · 控制单元安装位置 3D 标注" />
+<meta property="og:description" content="10 个关键控制单元与总成的 3D 安装位置，点击部件弹出实拍解析图。" />
+<meta name="author" content="枣庄职业学院 陈澄" />
+<style>
+  :root{
+    --bg:#070a0f; --panel:rgba(13,18,26,.86); --panel-2:rgba(20,27,38,.9);
+    --line:rgba(120,160,210,.16); --txt:#e8eef8; --dim:#8fa1b8; --dim2:#657689;
+    --accent:#4fc3ff; --accent-2:#ffb14d; --green:#54d6a0;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--txt);
+    font-family:"HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;overflow:hidden}
+  #app{position:fixed;inset:0;display:grid;isolation:isolate;z-index:10;
+    grid-template-columns:300px 1fr 340px;grid-template-rows:1fr 34px;
+    grid-template-areas:"left view right" "status status status"}
+  #viewport{grid-area:view;position:relative;overflow:hidden}
+  #viewport canvas{display:block;width:100%;height:100%}
+
+  /* ---------- 左栏 ---------- */
+  #left{grid-area:left;background:var(--panel);backdrop-filter:blur(14px);
+    border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+  .brand{padding:18px 18px 14px;border-bottom:1px solid var(--line)}
+  .brand h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.5px}
+  .brand h1 em{font-style:normal;color:var(--accent-2)}
+  .brand p{margin:6px 0 0;font-size:11.5px;color:var(--dim);line-height:1.6}
+  .sec{padding:14px 16px 6px;font-size:11px;letter-spacing:1.4px;color:var(--dim2)}
+
+  .switches{display:flex;flex-direction:column;gap:2px;padding:0 10px 10px}
+  .sw{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:9px 8px;border-radius:9px;cursor:pointer;transition:background .18s}
+  .sw:hover{background:rgba(80,130,190,.10)}
+  .sw span{font-size:12.5px;color:#cfdaea}
+  .track{width:38px;height:21px;border-radius:11px;background:rgba(120,145,180,.22);
+    position:relative;transition:background .2s;flex:none}
+  .track::after{content:"";position:absolute;top:3px;left:3px;width:15px;height:15px;
+    border-radius:50%;background:#9fb0c4;transition:transform .2s,background .2s}
+  .sw.on .track{background:rgba(79,195,255,.35)}
+  .sw.on .track::after{transform:translateX(17px);background:var(--accent)}
+
+  .list{flex:1;min-height:0;overflow-y:auto;padding:4px 10px 14px}
+  .list::-webkit-scrollbar{width:6px}
+  .list::-webkit-scrollbar-thumb{background:rgba(120,160,210,.25);border-radius:3px}
+  .item{position:relative;display:flex;gap:10px;align-items:flex-start;
+    padding:10px 58px 10px 12px;border-radius:10px;cursor:pointer;margin-bottom:4px;
+    border:1px solid transparent;transition:background .18s,border-color .18s,transform .18s}
+  .item:hover{background:rgba(80,130,190,.10)}
+  .item.sel{background:rgba(79,195,255,.12);border-color:rgba(79,195,255,.42)}
+  .dot{width:8px;height:8px;border-radius:50%;margin-top:6px;flex:none;
+    box-shadow:0 0 0 3px rgba(255,255,255,.06)}
+  .item .nm{display:block;font-size:13px;font-weight:600;line-height:1.5}
+  .item .loc{display:block;font-size:11px;color:var(--dim);line-height:1.55;margin-top:3px}
+  .item .tag{position:absolute;right:10px;top:10px;font-size:10px;color:var(--accent-2);
+    border:1px solid rgba(255,177,77,.4);border-radius:5px;padding:1px 5px;opacity:0;transition:opacity .2s}
+  .item.sel .tag{opacity:1}
+  .foot{padding:10px 16px 14px;border-top:1px solid var(--line);font-size:10.5px;
+    color:var(--dim2);line-height:1.7}
+
+  /* ---------- 右栏 ---------- */
+  #right{grid-area:right;background:var(--panel);backdrop-filter:blur(14px);
+    border-left:1px solid var(--line);overflow-y:auto;min-height:0}
+  #right::-webkit-scrollbar{width:6px}
+  #right::-webkit-scrollbar-thumb{background:rgba(120,160,210,.25);border-radius:3px}
+  .rw{padding:20px 20px 26px}
+  .r-title{font-size:16px;font-weight:700;line-height:1.45}
+  .r-kind{display:inline-block;margin-top:8px;font-size:10.5px;padding:2px 8px;border-radius:6px;
+    color:var(--accent);border:1px solid rgba(79,195,255,.35);background:rgba(79,195,255,.08)}
+  .r-kind.hv{color:var(--accent-2);border-color:rgba(255,177,77,.38);background:rgba(255,177,77,.09)}
+  .blk{margin-top:16px}
+  .k{font-size:10.5px;letter-spacing:1.2px;color:var(--dim2);margin-bottom:6px}
+  .v{font-size:12.8px;line-height:1.85;color:#dbe6f4}
+  .v.hi{color:#ffd9a3}
+  .note{margin-top:16px;font-size:11.5px;line-height:1.8;color:#a9b8ca;
+    background:rgba(255,255,255,.035);border-left:2px solid rgba(79,195,255,.5);
+    padding:10px 12px;border-radius:0 8px 8px 0}
+  .note.hv{border-left-color:rgba(255,177,77,.6)}
+  .btns{margin-top:18px;display:flex;flex-direction:column;gap:8px}
+  .btn{appearance:none;border:1px solid rgba(120,160,210,.28);background:rgba(255,255,255,.04);
+    color:#dbe6f4;font-size:12.5px;padding:9px 12px;border-radius:9px;cursor:pointer;
+    transition:background .18s,border-color .18s,transform .1s;font-family:inherit}
+  .btn:hover{background:rgba(79,195,255,.13);border-color:rgba(79,195,255,.45)}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:linear-gradient(180deg,rgba(79,195,255,.26),rgba(79,195,255,.14));
+    border-color:rgba(79,195,255,.5);color:#eaf7ff}
+  .hint{margin-top:14px;font-size:11.5px;line-height:2;color:var(--dim)}
+  .hint b{color:#cfdaea;font-weight:600}
+  .kbd{display:inline-block;padding:1px 6px;border-radius:5px;font-size:11px;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);color:#dbe6f4}
+
+  /* ---------- 状态栏 / 浮层 ---------- */
+  #status{grid-area:status;display:flex;align-items:center;justify-content:space-between;
+    padding:0 16px;font-size:11.5px;color:var(--dim);background:rgba(8,11,16,.92);
+    border-top:1px solid var(--line)}
+  #status .sep{opacity:.45;margin:0 8px}
+  #tip{position:fixed;pointer-events:none;z-index:60;padding:5px 9px;border-radius:7px;
+    background:rgba(8,12,18,.92);border:1px solid rgba(120,170,230,.35);color:#e6eefb;
+    font-size:11.5px;white-space:nowrap;opacity:0;transform:translateY(4px);
+    transition:opacity .14s,transform .14s}
+  #tip.show{opacity:1;transform:translateY(0)}
+  #toast{position:fixed;left:50%;bottom:58px;transform:translate(-50%,10px);z-index:70;
+    background:rgba(12,18,26,.94);border:1px solid rgba(120,170,230,.3);color:#dfe9f6;
+    font-size:12px;padding:9px 16px;border-radius:10px;opacity:0;pointer-events:none;
+    transition:opacity .22s,transform .22s;white-space:nowrap}
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+  #loading{position:fixed;inset:0;z-index:99;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 45%,#0d1520,#04060a 70%);color:#8fa1b8;font-size:13px;
+    letter-spacing:.6px;transition:opacity .5s}
+  #loading.hide{opacity:0;pointer-events:none}
+  /* 充电口说明卡：点击口盖后出现在旁边 */
+  #portCard{position:absolute;z-index:80;width:330px;display:none;
+    background:linear-gradient(180deg,rgba(16,23,33,.97),rgba(11,16,23,.97));
+    border:1px solid rgba(120,170,230,.35);border-radius:12px;overflow:hidden;
+    box-shadow:0 18px 40px rgba(0,0,0,.55);backdrop-filter:blur(8px)}
+  #portCard.show{display:block;animation:pcIn .18s ease-out}
+  @keyframes pcIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  #portCard .pc-img{width:100%;height:206px;object-fit:contain;background:#0a0f16;display:block}
+  #portCard .pc-body{padding:11px 13px 13px}
+  #portCard h4{margin:0 0 6px;font-size:13px;color:#eaf2ff;font-weight:600}
+  #portCard p{margin:0;font-size:11.5px;line-height:1.72;color:#9fb0c6}
+  #portClose{position:absolute;right:8px;top:8px;width:22px;height:22px;border-radius:50%;
+    border:1px solid rgba(160,190,225,.35);background:rgba(8,12,18,.8);color:#cfdcea;
+    font-size:14px;line-height:20px;text-align:center;cursor:pointer;padding:0}
+  #portClose:hover{background:rgba(30,45,64,.9)}
+  /* ---------- 水印（仅两处：视口中央极淡一条 + 右下角小字，不影响看图） ---------- */
+  #watermark{position:absolute;inset:0;pointer-events:none;user-select:none;z-index:5;overflow:hidden}
+  #watermark .wm-diag{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%) rotate(-24deg);
+    font-size:38px;letter-spacing:.16em;font-weight:600;color:#dce8f7;opacity:.052;white-space:nowrap;
+    text-shadow:0 1px 0 rgba(0,0,0,.25)}
+  #watermark .wm-corner{position:absolute;right:16px;bottom:14px;font-size:11px;letter-spacing:.14em;
+    color:#c9d8ea;opacity:.42;text-shadow:0 1px 3px rgba(0,0,0,.75)}
+  #watermark .wm-corner b{font-weight:600;color:#e3eefb;opacity:.95}
+  .sp{width:16px;height:16px;margin-right:10px;border-radius:50%;
+    border:2px solid rgba(120,170,230,.25);border-top-color:#4fc3ff;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* ================= 手机端（竖屏优先，全部挂在 body.mobile 下） ================= */
+  #mbar,#mback,#mClose,#mSheetGrip{display:none}
+
+  body.mobile{-webkit-text-size-adjust:100%;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;
+    -webkit-user-select:none;user-select:none}
+  body.mobile #app{grid-template-columns:1fr;grid-template-rows:1fr;grid-template-areas:"view"}
+  body.mobile #status{display:none}
+  body.mobile #viewport canvas{touch-action:none}
+
+  /* 顶部操作条 */
+  body.mobile #mbar{display:flex;align-items:center;gap:10px;position:absolute;left:0;right:0;top:0;
+    z-index:45;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;
+    background:linear-gradient(180deg,rgba(6,9,14,.92),rgba(6,9,14,.55) 70%,rgba(6,9,14,0));
+    pointer-events:none}
+  body.mobile #mbar > *{pointer-events:auto}
+  body.mobile #mbar .mb{width:38px;height:38px;flex:none;display:flex;align-items:center;justify-content:center;
+    border-radius:11px;border:1px solid rgba(120,160,210,.28);background:rgba(14,20,29,.82);
+    color:#dbe6f4;font-size:17px;line-height:1;padding:0;cursor:pointer;font-family:inherit}
+  body.mobile #mbar .mb:active{background:rgba(79,195,255,.2)}
+  body.mobile #mbar .m-title{font-size:13px;font-weight:600;letter-spacing:.4px;color:#e6eefb;
+    text-shadow:0 1px 4px rgba(0,0,0,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.mobile #mbar .m-title em{font-style:normal;color:var(--accent-2)}
+
+  /* 左侧抽屉 */
+  body.mobile #left{position:fixed;left:0;top:0;bottom:0;width:min(84vw,320px);z-index:75;
+    border-right:1px solid var(--line);border-radius:0 16px 16px 0;
+    transform:translateX(-103%);transition:transform .26s cubic-bezier(.22,.7,.2,1);
+    box-shadow:18px 0 50px rgba(0,0,0,.6);padding-top:env(safe-area-inset-top)}
+  body.mobile #left.open{transform:none}
+  body.mobile .brand{padding:16px 16px 12px}
+  body.mobile .brand h1{font-size:16px}
+  body.mobile .sw{padding:12px 8px}
+  body.mobile .sw span{font-size:13.5px}
+  body.mobile .track{width:44px;height:24px;border-radius:13px}
+  body.mobile .track::after{width:18px;height:18px}
+  body.mobile .sw.on .track::after{transform:translateX(20px)}
+  body.mobile .item{padding:12px 56px 12px 12px;margin-bottom:6px}
+  body.mobile .item .nm{font-size:14px}
+  body.mobile .item .loc{font-size:12px}
+  body.mobile .foot{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+
+  /* 底部信息面板（收起为底部把手） */
+  body.mobile #right{position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));
+    z-index:75;max-height:54vh;border:1px solid rgba(120,160,210,.22);border-radius:16px;
+    background:linear-gradient(180deg,rgba(15,21,30,.97),rgba(9,13,19,.98));
+    box-shadow:0 -12px 40px rgba(0,0,0,.55);overflow-y:auto;-webkit-overflow-scrolling:touch;
+    transform:translateY(calc(100% + 24px));transition:transform .3s cubic-bezier(.22,.7,.2,1);
+    padding-top:6px}
+  body.mobile #right.open{transform:none}
+  body.mobile #right .rw{padding:6px 16px calc(18px + env(safe-area-inset-bottom))}
+  body.mobile #mSheetGrip{display:block;width:44px;height:4px;border-radius:2px;margin:6px auto 2px;
+    background:rgba(140,170,205,.35)}
+  body.mobile #mClose{display:flex;position:absolute;right:8px;top:8px;width:30px;height:30px;
+    align-items:center;justify-content:center;border-radius:50%;padding:0;font-size:16px;line-height:1;
+    border:1px solid rgba(160,190,225,.3);background:rgba(8,12,18,.85);color:#cfdcea;
+    cursor:pointer;z-index:2;font-family:inherit}
+  body.mobile .r-title{font-size:15.5px;padding-right:34px}
+  body.mobile .v{font-size:13px;line-height:1.8}
+  body.mobile .btn{padding:11px 12px;font-size:13.5px}
+
+  /* 遮罩 */
+  body.mobile #mback{display:block;position:fixed;inset:0;z-index:5;background:rgba(2,5,9,.5);
+    opacity:0;pointer-events:none;transition:opacity .24s;backdrop-filter:blur(1px)}
+  body.mobile #mback.show{opacity:1;pointer-events:auto}
+
+  /* 说明卡：手机上改成贴底卡片，避免出屏 */
+  body.mobile #portCard{width:min(86vw,330px)}
+  body.mobile #portCard .pc-img{height:150px}
+  body.mobile #portCard p{font-size:12px;line-height:1.7}
+
+  /* 水印与提示 */
+  body.mobile #watermark .wm-diag{font-size:21px;letter-spacing:.12em;opacity:.055}
+  body.mobile #watermark .wm-corner{right:10px;bottom:calc(10px + env(safe-area-inset-bottom));font-size:9.5px}
+  body.mobile #tip{display:none !important}
+  body.mobile #toast{bottom:calc(90px + env(safe-area-inset-bottom));font-size:12.5px}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="left">
+    <div class="brand">
+      <h1>比亚迪 秦<em>EV</em> · 控制单元</h1>
+      <p>2020 款纯电紧凑型轿车 · 4765×1837×1515 mm · 轴距 2718 mm<br>10 个关键控制单元 / 总成的实车安装位置标注</p>
+    </div>
+
+    <div class="sec">显示控制</div>
+    <div class="switches">
+      <div class="sw" id="swXray"><span>透视车身（查看内部）</span><div class="track"></div></div>
+      <div class="sw on" id="swLabel"><span>显示安装位置标注</span><div class="track"></div></div>
+      <div class="sw" id="swSpin"><span>自动环绕</span><div class="track"></div></div>
+    </div>
+
+    <div class="sec">控制单元 · 10</div>
+    <div class="list" id="list"></div>
+    <div class="foot">安装位置为示意，具体以实车维修手册为准。</div>
+  </aside>
+
+  <main id="viewport">
+    <div id="mbar">
+      <button class="mb" id="mMenu" aria-label="打开控制单元列表">☰</button>
+      <div class="m-title">比亚迪 秦<em>EV</em> · 控制单元安装位置</div>
+      <button class="mb" id="mInfo" aria-label="操作提示">?</button>
+    </div>
+    <div id="watermark">
+      <div class="wm-diag">枣庄职业学院 · 陈澄 制作</div>
+      <div class="wm-corner">© <b>枣庄职业学院 陈澄</b> 制作 · 请勿搬运</div>
+    </div>
+  </main>
+
+  <aside id="right">
+    <div id="mSheetGrip"></div>
+    <button id="mClose" aria-label="收起面板">×</button>
+    <div class="rw" id="info"></div>
+  </aside>
+
+  <footer id="status">
+    <div>左键拖拽旋转 <span class="sep">·</span> 滚轮缩放 <span class="sep">·</span> 右键平移 <span class="sep">·</span> 点击标注或列表查看该控制单元的安装位置</div>
+    <div>秦 EV 纯电 · 控制单元位置示意 <span class="sep">·</span> 枣庄职业学院 陈澄 制作</div>
+  </footer>
+</div>
+<div id="mback"></div>
+
+<div id="tip"></div>
+<div id="portCard">
+  <button id="portClose" title="关闭">×</button>
+  <img id="portImg" class="pc-img" alt="充电接口定义">
+  <div class="pc-body">
+    <h4 id="portName">充电口</h4>
+    <p id="portCap"></p>
+  </div>
+</div>
+<div id="toast"></div>
+<div id="loading"><span class="sp"></span>正在按实车比例重建车身…</div>
+
+<!-- Three.js（CDN，非模块化版） -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script>window.THREE || document.write('<script src="https://unpkg.com/three@0.128.0/build/three.min.js"><\/script>');</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>window.THREE && THREE.OrbitControls || document.write('<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>');</script>
+
+<script>
+"use strict";
+(function () {
+
+  if (!window.THREE) {
+    document.getElementById('loading').innerHTML = 'Three.js 加载失败，请检查网络后刷新';
+    return;
+  }
+
+  /* =====================================================================
+     0. 尺寸常量（按秦PLUS EV 实车比例，1 单位 = 1 米）
+     ===================================================================== */
+  const CAR = {
+    L: 4.765, W: 1.837, H: 1.515, WB: 2.718,
+    halfW: 0.9185,          // 车身最大半宽
+    axleF: 1.359,           // 前轴 z
+    axleR: -1.359,          // 后轴 z
+    wheelR: 0.342,          // 轮胎半径（215/55 R17 ≈ 0.68 m 直径）
+    wheelW: 0.225,
+    trackHalf: 0.755        // 轮距的一半
+  };
+
+  /* 控制单元数据：只保留用户指定的 5 个 */
+  const UNITS = [
+    {
+      id: 'KEY', name: '智能钥匙模块（PEPS）', short: '智能钥匙模块',
+      color: 0x54d6a0, hv: false,
+      pos: [0.62, 0.92, -1.62],             // 后备箱内、主驾驶（左舵=车身左侧 +X）一侧车身上
+      labelOff: [1.06, 1.02, -0.52],
+      sys: '无钥匙进入与一键启动系统',
+      loc: '后备箱内、主驾驶一侧车身上（后备箱侧围装饰板内）',
+      func: '接收智能钥匙的低频 / 射频信号，完成无钥匙进入与一键启动的身份认证；认证通过后向整车网络发出唤醒请求，由 BCM 唤醒整车电器。',
+      spec: '低频天线 + 射频接收模块，工作频率 125 kHz / 433 MHz',
+      note: '安装位置为示意，具体以实车维修手册为准。实车多布置于后保险杠内侧或后备箱侧围，以便覆盖车尾与后备箱区域的钥匙信号。'
+    },
+    {
+      id: 'BCM', name: 'BCM 车身控制模块', short: 'BCM 车身控制',
+      color: 0x4fc3ff, hv: false,
+      pos: [0.52, 0.74, 0.66],              // 驾驶室仪表台下方、驾驶员（左）= 车身左侧左腿前方
+      labelOff: [1.02, 0.70, -0.06],
+      sys: '车身电器系统',
+      loc: '驾驶室内、仪表台下方，驾驶员左腿前方',
+      func: '管理门锁、车窗、灯光、雨刮等车身电器。唤醒条件：① 防盗解锁 ② 按一键启动开关 ③ 踩制动踏板。唤醒后控制前舱配电盒内的多个继电器，为不同负载分层供电。',
+      spec: '车身控制模块（BCM）；部分车型集成胎压接收功能',
+      note: '安装位置为示意，具体以实车维修手册为准。BCM 是车身电器的「调度中心」，也是诊断仪读取车身故障码的主要入口。'
+    },
+    {
+      id: 'VCU', name: 'VCU 整车控制器', short: 'VCU 整车控制',
+      color: 0x7aa8ff, hv: false,
+      pos: [0.0, 0.62, -0.22],              // 中央扶手箱内
+      labelOff: [0.02, 1.62, -0.10],
+      sys: '整车控制与能量管理',
+      loc: '中央扶手箱内（中央通道下方）',
+      func: '整车「大脑」：协调动力输出与制动能量回收，管理高压上下电时序、挡位与驾驶模式，监控整车状态并对故障分级处理，向 MCU 下达扭矩指令。',
+      spec: '整车控制器（VCU），与 MCU / BMS / BCM 通过 CAN 总线通信',
+      note: '安装位置为示意，具体以实车维修手册为准。中央扶手箱内便于线束汇聚到前舱与仪表台。'
+    },
+    {
+      id: 'MCU', name: 'MCU 电机控制器', short: 'MCU 电机控制',
+      color: 0xffb14d, hv: true,
+      pos: [0.0, 0.615, 1.40],              // 前机舱、三合一总成与驱动电机之间
+      labelOff: [-0.92, 0.78, -0.22],
+      sys: '电驱动系统（高压）',
+      loc: '前机舱内中央、三合一控制总成下方、驱动电机上方',
+      func: '把动力电池的直流电逆变为三相交流电驱动电机，并按 VCU 的扭矩指令调节输出；同时把电机状态、温度、转速反馈给整车网络。属于高压部件。',
+      spec: '电机控制器（MCU），集成于「电机 + 电控 + 减速器」三合一总成',
+      note: '安装位置为示意，具体以实车维修手册为准。检修前必须按规程断开高压维修开关并验电，佩戴绝缘防护。'
+    },
+    {
+      id: 'INV3', name: '三合一控制总成', short: '三合一控制总成',
+      color: 0xb8c2cf, hv: true,
+      pos: [0.0, 0.800, 1.42],              // 前机舱中央最上层，铝壳
+      labelOff: [0.02, 1.18, -0.28],
+      sys: '电驱动系统（高压）',
+      loc: '前机舱内中央最上层（打开前舱盖首先看到的大铝壳总成）',
+      func: '把驱动电机、电机控制器 MCU、减速器集成为一个总成；上部铝壳内为 MCU 与直流母线端子，下方直接对接驱动电机与减速器。集成的目的：缩短高压线、减轻重量、提高功率密度。',
+      spec: '三合一电驱动总成（电机 + 电控 + 减速器），额定 100 kW / 180 N·m（2020 款秦 EV）',
+      note: '安装位置为示意，具体以实车维修手册为准。三合一总成整体吊装，检修高压端子前须断电并等待电容放电完毕。'
+    },
+    {
+      id: 'MOTOR', name: '驱动电机', short: '驱动电机',
+      color: 0x7f8ea3, hv: true,
+      pos: [0.0, 0.430, 1.26],              // 前机舱中央最下层
+      shape: 'cyl',
+      labelOff: [-1.22, 0.30, 0.16],
+      sys: '电驱动系统（高压）',
+      loc: '前机舱内中央、三合一控制总成与 MCU 下方（前桥位置）',
+      func: '永磁同步电机，把电能转换为机械扭矩，经单档减速器驱动前轮；制动时反向工作实现能量回收。',
+      spec: '永磁同步电机，最大功率 100 kW，最大扭矩 180 N·m',
+      note: '安装位置为示意，具体以实车维修手册为准。电机与减速器同壳体，拆装需整体落总成。'
+    },
+    {
+      id: 'PTC', name: 'PTC 电加热器', short: 'PTC 加热器',
+      color: 0xe2622a, hv: true,
+      pos: [-0.50, 0.780, 1.50],            // 前机舱、控制总成副驾驶侧
+      labelOff: [-0.95, 0.58, 0.10],
+      sys: '热管理系统（高压）',
+      loc: '前机舱内、三合一控制总成的副驾驶侧（车身右侧 −X），靠近暖风水路',
+      func: '高压 PTC 加热器：把高压电转换为热量，加热冷却液（或直接加热空气）为乘员舱采暖；与电动压缩机一起构成热管理回路。',
+      spec: '高压 PTC，功率约 5 kW 级（随车型配置不同）',
+      note: '安装位置为示意，具体以实车维修手册为准。PTC 为高压部件，接口为橙色高压插件。'
+    },
+    {
+      id: 'BATT12', name: '低压蓄电池（12V）', short: '低压电源',
+      color: 0x2f6fa8, hv: false,
+      pos: [0.50, 0.785, 1.56],             // 前机舱、控制总成驾驶员侧
+      labelOff: [0.92, 0.62, 0.10],
+      sys: '低压电源系统',
+      loc: '前机舱内、三合一控制总成的驾驶员侧（车身左侧 +X）',
+      func: '为整车低压电器与各控制单元供电；车辆上电后由 DC/DC 变换器为其充电。同时也是唤醒各控制单元的电源基础。',
+      spec: '12V 免维护铅酸蓄电池（约 45–60 Ah）',
+      note: '安装位置为示意，具体以实车维修手册为准。跨接启动、断电复位都从这里下手。'
+    },
+    {
+      id: 'FUSE', name: '前舱配电盒', short: '前舱配电盒',
+      color: 0x3d7fbf, hv: false,
+      pos: [0.66, 0.780, 1.14],             // 前机舱、驾驶员侧靠防火墙，BCM 线束上游
+      labelOff: [1.05, 0.86, -0.20],
+      sys: '低压电源系统',
+      loc: '前机舱内、驾驶员侧靠驾驶舱（防火墙）一侧，低压蓄电池旁',
+      func: '内装主保险与多个继电器，是 BCM 线束的上游节点。BCM 唤醒后按分层策略控制不同继电器，为灯光、雨刮、风扇等负载分级供电。',
+      spec: '前舱电器盒（保险丝 + 继电器），受 BCM 控制',
+      note: '安装位置为示意，具体以实车维修手册为准。诊断时先在此处确认保险与继电器状态。'
+    },
+    {
+      id: 'BMU', name: 'BMU 电池管理主控', short: 'BMU 电池管理',
+      color: 0x8a5ecf, hv: false,
+      pos: [0.50, 0.660, 1.56],             // 前机舱、低压蓄电池正下方
+      labelOff: [0.78, 0.20, -0.34],
+      sys: '动力电池管理系统',
+      loc: '前机舱内、低压（12V）蓄电池下方',
+      func: '电池管理系统主控（BMU / BMC）：采集总电压、总电流、绝缘电阻与温度，控制主接触器通断，完成 SOC / SOH 估算与均衡策略，并与 VCU、OBC 通信。',
+      spec: '分布式 BMS 主控，1 个 BMU + 电池包内多个 BIC 采集板',
+      note: '安装位置为示意，具体以实车维修手册为准。BMU 与电池包内的 BIC 通过内部通信总线连接。'
+    }
+  ];
+
+  /* 各单元示意体的尺寸（单位 m）：只为标出位置，不追求造型逼真 */
+  const UNIT_SIZE = {
+    KEY: [0.16, 0.075, 0.12], BCM: [0.20, 0.085, 0.15], VCU: [0.18, 0.075, 0.14],
+    MCU: [0.38, 0.110, 0.30], INV3: [0.46, 0.170, 0.42], MOTOR: [0.15, 0.30, 0.15],
+    PTC: [0.22, 0.150, 0.18], BATT12: [0.26, 0.150, 0.19], FUSE: [0.22, 0.140, 0.20],
+    BMU: [0.18, 0.060, 0.14]
+  };
+  UNITS.forEach(u => { if (!u.size) u.size = UNIT_SIZE[u.id] || [0.16, 0.08, 0.12]; });
+  /* 前机舱内的部件：点击时同时弹出实车机舱照片作对照 */
+  const BAY_IDS = ['INV3', 'MCU', 'MOTOR', 'PTC', 'BATT12', 'FUSE', 'BMU'];
+  UNITS.forEach(u => { if (BAY_IDS.indexOf(u.id) >= 0) u.bay = true; });
+  /* 有点击实拍图的单元：KEY / BCM / VCU */
+  const CARD_OF_UNIT = { KEY: 'key', BCM: 'bcm', VCU: 'vcu' };
+  UNITS.forEach(u => { if (CARD_OF_UNIT[u.id]) u.card = CARD_OF_UNIT[u.id]; });
+
+  /* =====================================================================
+     1. 场景 / 相机 / 渲染器 / 环境
+     ===================================================================== */
+  const viewport = document.getElementById('viewport');
+  const scene = new THREE.Scene();
+
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 200);
+  const HOME = { pos: new THREE.Vector3(6.55, 1.98, 7.35), target: new THREE.Vector3(0, 0.80, -0.12) };
+  camera.position.copy(HOME.pos);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  viewport.appendChild(renderer.domElement);
+
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.075;
+  controls.target.copy(HOME.target);
+  controls.minDistance = 2.2;
+  controls.maxDistance = 30;
+  controls.maxPolarAngle = Math.PI * 0.495;
+  controls.rotateSpeed = 0.75;
+  controls.zoomSpeed = 0.85;
+  controls.autoRotateSpeed = 0.55;
+  controls.update();
+
+  /* 环境贴图：用 canvas 画一个「影棚」竖向渐变，经 PMREM 生成反射，
+     让车漆出现高光带（否则金属漆会变成一片死白或死黑） */
+  function makeStudioEnv() {
+    const w = 64, h = 256;
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d');
+    const grad = g.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0.00, '#e8f1ff');
+    grad.addColorStop(0.22, '#b9cbe4');
+    grad.addColorStop(0.48, '#3d4b60');
+    grad.addColorStop(0.52, '#141a24');
+    grad.addColorStop(0.72, '#0a0e14');
+    grad.addColorStop(1.00, '#05070a');
+    g.fillStyle = grad; g.fillRect(0, 0, w, h);
+    // 两条柔光箱高光，模拟影棚顶灯
+    g.globalAlpha = 0.9;
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 26, w, 10);
+    g.globalAlpha = 0.45;
+    g.fillRect(0, 66, w, 6);
+    const tex = new THREE.CanvasTexture(c);
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+    tex.encoding = THREE.sRGBEncoding;
+    return tex;
+  }
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  const envRT = pmrem.fromEquirectangular(makeStudioEnv());
+  scene.environment = envRT.texture;
+
+  /* 灯光：主光带阴影 + 侧补光 + 轮后逆光（勾车身轮廓） */
+  const key = new THREE.DirectionalLight(0xffffff, 2.15);
+  key.position.set(5.2, 8.4, 5.0);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.camera.near = 0.5;
+  key.shadow.camera.far = 26;
+  key.shadow.camera.left = -6; key.shadow.camera.right = 6;
+  key.shadow.camera.top = 6; key.shadow.camera.bottom = -6;
+  key.shadow.bias = -0.0008;
+  key.shadow.radius = 3;
+  scene.add(key);
+
+  const fill = new THREE.DirectionalLight(0x9dc4ff, 0.62);
+  fill.position.set(-7.0, 3.4, 2.2);
+  scene.add(fill);
+
+  const rim = new THREE.DirectionalLight(0xfff0d8, 0.85);
+  rim.position.set(-1.8, 2.6, -8.2);
+  scene.add(rim);
+
+  scene.add(new THREE.HemisphereLight(0xdfeaff, 0x0a0f16, 0.55));
+
+  /* 地面：影棚地台 + 接触阴影 */
+  const floorMat = new THREE.MeshStandardMaterial({ color: 0x0b1017, roughness: 0.85, metalness: 0.1 });
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(16, 64), floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -0.002;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  (function floorGlow() {
+    const s = 256;
+    const c = document.createElement('canvas'); c.width = c.height = s;
+    const g = c.getContext('2d');
+    const rad = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    rad.addColorStop(0, 'rgba(120,170,235,0.30)');
+    rad.addColorStop(0.45, 'rgba(80,120,180,0.10)');
+    rad.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = rad; g.fillRect(0, 0, s, s);
+    const tex = new THREE.CanvasTexture(c);
+    const disc = new THREE.Mesh(
+      new THREE.CircleGeometry(7.2, 48),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })
+    );
+    disc.rotation.x = -Math.PI / 2;
+    disc.position.y = 0.004;
+    scene.add(disc);
+  })();
+
+  (function contactShadow() {
+    const w = 256, h = 128;
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d');
+    const rad = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+    rad.addColorStop(0, 'rgba(0,0,0,0.72)');
+    rad.addColorStop(0.55, 'rgba(0,0,0,0.32)');
+    rad.addColorStop(1, 'rgba(0,0,0,0)');
+    g.save(); g.scale(1, h / w); g.translate(0, 0);
+    g.fillStyle = rad; g.fillRect(0, 0, w, w);
+    g.restore();
+    const tex = new THREE.CanvasTexture(c);
+    const mesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(5.5, 2.7),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: 0.9 })
+    );
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set(0, 0.006, 0);
+    scene.add(mesh);
+  })();
+
+  /* 极淡的地面网格，给三维一点空间参照 */
+  const grid = new THREE.GridHelper(20, 20, 0x2a3a52, 0x18222f);
+  grid.material.transparent = true;
+  grid.material.opacity = 0.35;
+  grid.position.y = 0.002;
+  scene.add(grid);
+
+  /* =====================================================================
+     2. 材质
+     ===================================================================== */
+  const paintMat = new THREE.MeshPhysicalMaterial({
+    color: 0xf2f5f9, metalness: 0.30, roughness: 0.32,
+    clearcoat: 0.85, clearcoatRoughness: 0.12,
+    side: THREE.DoubleSide
+  });
+  const glassMat = new THREE.MeshPhysicalMaterial({
+    color: 0x0a1017, metalness: 0.22, roughness: 0.08,
+    transparent: true, opacity: 0.88, side: THREE.DoubleSide,
+    clearcoat: 1.0, clearcoatRoughness: 0.05
+  });
+  const blackMat = new THREE.MeshStandardMaterial({ color: 0x0a0d12, roughness: 0.55, metalness: 0.4 });
+  const trimMat = new THREE.MeshStandardMaterial({ color: 0x14181f, roughness: 0.42, metalness: 0.65 });
+  const chromeMat = new THREE.MeshStandardMaterial({ color: 0xcdd6e2, roughness: 0.14, metalness: 1.0 });
+  const tireMat = new THREE.MeshStandardMaterial({ color: 0x0c0e12, roughness: 0.92, metalness: 0.0 });
+  const lampMat = new THREE.MeshStandardMaterial({
+    color: 0xdfeaf7, roughness: 0.12, metalness: 0.2,
+    emissive: 0x88b6e0, emissiveIntensity: 0.55
+  });
+  const tailMat = new THREE.MeshStandardMaterial({
+    color: 0x8c1119, roughness: 0.22, metalness: 0.42,
+    emissive: 0xc4141c, emissiveIntensity: 0.30
+  });
+
+  /* =====================================================================
+     3. 车身：剖面放样（侧影 + 车头车尾收窄 + 轮拱切口）
+     ===================================================================== */
+  const carRoot = new THREE.Group();
+  scene.add(carRoot);
+
+  function smoothstep(t) { t = t < 0 ? 0 : t > 1 ? 1 : t; return t * t * (3 - 2 * t); }
+
+  /* 车身半宽：|z| 越大越收（车头车尾），y 越高越收（车顶内倾） */
+  function halfWidth(z, y) {
+    const az = Math.abs(z);
+    // 车头收窄幅度小（前翼子板是最宽处），车尾收窄幅度略大
+    const zTaper = z >= 0
+      ? 1 - 0.082 * smoothstep((az - 1.45) / 0.95)
+      : 1 - 0.150 * smoothstep((az - 1.30) / 1.00);
+    const belt = 0.95;
+    let yTaper;
+    if (y <= belt) yTaper = 0.958 + 0.042 * smoothstep(y / belt);
+    else yTaper = 1 - 0.082 * smoothstep((y - belt) / 0.555);
+    // 腰线（肩部）外凸：让侧面在 y≈0.97 处有一道转折高光，而不是一块平板
+    const shoulder = 0.011 * Math.exp(-Math.pow((y - 0.975) / 0.115, 2));
+    // 下裙线：门板下部略微内收，形成「上厚下薄」的体量
+    const skirt = -0.008 * smoothstep((0.55 - y) / 0.30);
+    return CAR.halfW * zTaper * yTaper + shoulder + skirt;
+  }
+
+  /* 侧视轮廓：先给「上半身」关键点，再用 Catmull-Rom 重采样成光滑曲线，
+     避免直线段拼出来的「折面感」；底盘段（含轮拱切口）保持折线，保证切口锐利 */
+  const UPPER_CTRL = [
+    [2.383, 0.318],   // 前保险杠下沿
+    [2.416, 0.520],   // 前脸最凸点
+    [2.402, 0.700],   // 前脸顶部（龙颜封闭格栅上沿）
+    [2.330, 0.776],   // 机盖前缘
+    [2.120, 0.816],
+    [1.820, 0.856],
+    [1.480, 0.900],
+    [1.150, 0.950],
+    [0.980, 0.986],   // 雨刮槽
+    [0.870, 1.012],   // 风挡下沿（A 柱根部）
+    [0.430, 1.408],   // 风挡上沿
+    [0.150, 1.472],
+    [-0.380, 1.500],  // 车顶最高
+    [-0.980, 1.462],  // 车顶后缘
+    [-1.600, 1.132],  // 后风挡下沿（尾箱盖前缘）
+    [-1.700, 1.126],  // 尾箱盖
+    [-1.980, 1.118],
+    [-2.250, 1.106],  // 尾箱盖后缘
+    [-2.330, 1.092],  // 尾板上沿
+    [-2.372, 0.880],
+    [-2.356, 0.600],
+    [-2.318, 0.418],
+    [-2.220, 0.300]
+  ];
+  const upCurve = new THREE.CatmullRomCurve3(
+    UPPER_CTRL.map(p => new THREE.Vector3(p[0], p[1], 0)), false, 'centripetal', 0.5
+  );
+  const UPPER = upCurve.getPoints(96).map(v => [v.x, v.y]);
+
+  const PROFILE = UPPER.slice();
+  const P = (z, y) => PROFILE.push([z, y]);
+
+  P(-1.900, 0.292);
+  // 后轮拱（圆心 z=-1.359，半径 0.42）
+  for (let i = 0; i <= 8; i++) {
+    const a = Math.PI * i / 8;
+    P(CAR.axleR - 0.435 * Math.cos(a), 0.286 + 0.435 * Math.sin(a));
+  }
+  P(-0.520, 0.276);  // 门槛
+  P(0.520, 0.276);
+  // 前轮拱（圆心 z=+1.359）
+  for (let i = 0; i <= 8; i++) {
+    const a = Math.PI * i / 8;
+    P(CAR.axleF - 0.435 * Math.cos(a), 0.286 + 0.435 * Math.sin(a));
+  }
+  P(1.960, 0.292);
+  P(2.240, 0.300);
+
+  /* 风挡 / 后窗所在剖面段：按区段中点判断，剖面重采样后依然有效 */
+  function isGlassSeg(i) {
+    const n = PROFILE.length;
+    const a = PROFILE[i], b = PROFILE[(i + 1) % n];
+    const zM = (a[0] + b[0]) / 2, yM = (a[1] + b[1]) / 2;
+    if (zM < 0.860 && zM > 0.440 && yM > 1.030) return true;   // 前风挡
+    if (zM < -0.975 && zM > -1.580 && yM > 1.230) return true; // 后风挡
+    return false;
+  }
+
+  /* ------------------------------------------------------------------
+     车身：沿车长的「横断面放样」
+     每个 z 设一个闭合断面环（底部中点 → 右侧自下而上 → 车顶中点 → 左侧自上而下），
+     相邻断面之间用四边形连成规整网格。
+     这样侧面是连续的四边面，不会像三角化那样出现一条条法线接缝（就是用户说的"波浪褶皱"）。
+     ------------------------------------------------------------------ */
+  const ROWS = 8;             // 断面每侧的高度行数
+  const STATIONS = 82;        // 沿车长的断面数
+
+  function archY(z, cz, r) {
+    const dz = Math.abs(z - cz);
+    if (dz >= r) return -1e9;
+    return 0.286 + Math.sqrt(r * r - dz * dz);
+  }
+  /* 车身下沿：门槛 + 前后轮拱切口 + 首尾微微上翘 */
+  function botY(z) {
+    let y = 0.278;
+    y = Math.max(y, archY(z, CAR.axleF, 0.435), archY(z, CAR.axleR, 0.435));
+    if (z > 2.20) y = Math.max(y, 0.278 + (z - 2.20) * 0.62);
+    if (z < -2.18) y = Math.max(y, 0.278 + (-2.18 - z) * 0.62);
+    return y;
+  }
+
+  function buildBodyGeometry() {
+    const pos = [], paintIdx = [], glassIdx = [];
+    const ringLen = 2 * ROWS + 4;
+    const add = (x, y, z) => { pos.push(x, y, z); return pos.length / 3 - 1; };
+    const rings = [];
+
+    for (let i = 0; i < STATIONS; i++) {
+      const z = 2.395 - (4.750 * i) / (STATIONS - 1);
+      const yb = botY(z), yt = topY(z), cy = (yb + yt) / 2;
+      // 首尾只做很小的圆角收边：车头/车尾本身就是一块近乎平的面板
+      const dEnd = Math.min(2.395 - z, z + 2.355);
+      let k = 1;
+      if (dEnd < 0.050) k = 0.95 + 0.05 * Math.sqrt(Math.max(0, 1 - Math.pow((0.050 - dEnd) / 0.050, 2)));
+
+      const ring = [];
+      ring.push(add(0, cy + (yb - cy) * k, z));                       // 底部中点
+      for (let j = 0; j <= ROWS; j++) {                               // 右侧自下而上
+        const t = Math.pow(j / ROWS, 0.92);
+        const y = yb + (yt - yb) * t;
+        ring.push(add(halfWidth(z, y) * k, cy + (y - cy) * k, z));
+      }
+      ring.push(add(0, cy + (yt - cy) * k, z));                       // 车顶中点
+      for (let j = ROWS; j >= 0; j--) {                               // 左侧自上而下
+        const t = Math.pow(j / ROWS, 0.92);
+        const y = yb + (yt - yb) * t;
+        ring.push(add(-halfWidth(z, y) * k, cy + (y - cy) * k, z));
+      }
+      rings.push({ idx: ring, z: z });
+    }
+
+    // 断面之间连四边形
+    for (let i = 0; i < STATIONS - 1; i++) {
+      const A = rings[i].idx, B = rings[i + 1].idx;
+      for (let j = 0; j < ringLen; j++) {
+        const j2 = (j + 1) % ringLen;
+        const a0 = A[j], a1 = A[j2], b0 = B[j], b1 = B[j2];
+        const zM = (pos[a0 * 3 + 2] + pos[b1 * 3 + 2]) / 2;
+        const yM = (pos[a0 * 3 + 1] + pos[a1 * 3 + 1] + pos[b0 * 3 + 1] + pos[b1 * 3 + 1]) / 4;
+        /* 车身整体只给漆面：风挡 / 后窗改由「贴合车身曲面的独立玻璃面片」来做，
+           避免按四边形分类材质时在 A 柱、C 柱处出现阶梯状锯齿 */
+        const dst = paintIdx;
+        dst.push(a0, a1, b1);
+        dst.push(a0, b1, b0);
+      }
+    }
+    // 首尾封口（从断面中心扇形收起）
+    [[rings[0], true], [rings[STATIONS - 1], false]].forEach(([R, front]) => {
+      let sx = 0, sy = 0, n = 0;
+      R.idx.forEach(v => { sx += pos[v * 3]; sy += pos[v * 3 + 1]; n++; });
+      const c = add(sx / n, sy / n, R.z);
+      for (let j = 0; j < ringLen; j++) {
+        const a = R.idx[j], b = R.idx[(j + 1) % ringLen];
+        if (front) paintIdx.push(c, a, b); else paintIdx.push(c, b, a);
+      }
+    });
+
+    const idx = paintIdx.concat(glassIdx);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setIndex(idx);
+    g.addGroup(0, paintIdx.length, 0);
+    g.addGroup(paintIdx.length, glassIdx.length, 1);
+    g.computeVertexNormals();
+    return g;
+  }
+
+  const body = new THREE.Mesh(buildBodyGeometry(), [paintMat, glassMat]);
+  body.castShadow = true;
+  body.receiveShadow = true;
+  body.name = '车身（白车身 + 覆盖件）';
+  carRoot.add(body);
+
+  /* ---------- 驾驶室内饰（隔着玻璃也能看出「里面有东西」，不是空壳） ---------- */
+  (function buildInterior() {
+    const dk = new THREE.MeshStandardMaterial({ color: 0x1b1f27, roughness: 0.78, metalness: 0.12 });
+    const dk2 = new THREE.MeshStandardMaterial({ color: 0x2a303b, roughness: 0.66, metalness: 0.18 });
+    boxMesh(1.46, 0.20, 0.36, dk, 0, 0.955, 0.70);              // 仪表台
+    boxMesh(1.34, 0.06, 0.30, dk2, 0, 0.845, 0.665);            // 仪表台下部
+    /* 左舵（中国规格）：驾驶员在车身左侧 = +X 方向 */
+    boxMesh(0.34, 0.14, 0.03, blackMat, 0.40, 0.995, 0.545);    // 仪表罩（驾驶员正前方）
+    boxMesh(0.32, 0.20, 0.03, blackMat, -0.02, 0.985, 0.535);   // 中控屏（居中）
+    boxMesh(0.26, 0.22, 0.86, dk2, 0, 0.665, 0.185);            // 中央通道 / 扶手箱
+    boxMesh(0.24, 0.055, 0.20, dk, 0, 0.615, -0.20);            // 扶手箱盖
+
+    /* 方向盘（左舵，偏车身左侧 +X） */
+    const sw = new THREE.Mesh(new THREE.TorusGeometry(0.155, 0.021, 8, 26), dk);
+    sw.position.set(0.36, 0.905, 0.545);
+    sw.rotation.x = -0.32;
+    carRoot.add(sw);
+    // 转向柱
+    const col = boxMesh(0.07, 0.07, 0.26, dk2, 0.36, 0.905, 0.690);
+    col.rotation.x = -0.32;
+
+    /* 前排座椅（靠背 + 坐垫）：+X 主驾 / −X 副驾 */
+    [0.36, -0.36].forEach(x => {
+      boxMesh(0.46, 0.56, 0.11, dk, x, 0.90, -0.02);
+      boxMesh(0.46, 0.10, 0.46, dk2, x, 0.615, 0.14);
+      boxMesh(0.20, 0.14, 0.10, dk, x, 1.20, -0.05);            // 头枕
+    });
+    /* 后排座椅 */
+    boxMesh(1.34, 0.30, 0.44, dk, 0, 0.645, -1.02);
+    boxMesh(1.34, 0.46, 0.14, dk, 0, 0.88, -1.20);
+  })();
+
+  /* 顶部轮廓 y 查询（给侧窗上沿用）：直接用重采样后的上半段轮廓 UPPER */
+  function topY(z) {
+    for (let i = 0; i < UPPER.length - 1; i++) {
+      const a = UPPER[i], b = UPPER[i + 1];
+      const z0 = a[0], z1 = b[0];
+      if ((z <= z0 && z >= z1)) {
+        const t = (z - z0) / (z1 - z0);
+        return a[1] + (b[1] - a[1]) * t;
+      }
+    }
+    return 1.0;
+  }
+
+  /* ---------- 侧窗：前后边缘带斜度（A/C 柱），腰线自前向后缓慢抬高 ---------- */
+  function beltAt(z) {
+    // 腰线：实车侧窗玻璃只有 ~0.33 m 高，腰线在 1.07 附近，自前向后缓慢抬高
+    return 1.072 + 0.030 * smoothstep((0.55 - z) / 1.62);
+  }
+  /* 用射线直接量出车身侧面在 (z,y) 处的实际 x，保证玻璃严丝合缝贴在车身表面外 8mm */
+  const _sideRay = new THREE.Raycaster();
+  function surfaceX(z, y, sign, off) {
+    const d = (off === undefined) ? 0.008 : off;
+    _sideRay.set(new THREE.Vector3(sign * 3.0, y, z), new THREE.Vector3(-sign, 0, 0));
+    const hits = _sideRay.intersectObject(body, false);
+    if (hits.length) return Math.abs(hits[0].point.x) + d;
+    return halfWidth(z, y) + d;
+  }
+  /* ---------- 侧窗 DLO ----------
+     做法仿实车：先铺一层「黑色窗框/密封条」底衬（比玻璃外扩 ~25mm），
+     再在上面贴三块玻璃（前门窗 / 后门窗 / 后角窗），玻璃之间的黑底露出来就是
+     B 柱和 C 柱——与车身曲面同面，不会再出现「一根柱子从门板上长出来」。 */
+  const DLO = { zb0: 0.605, zt0: 0.405, zb1: -1.020, zt1: -1.060 };
+
+  /* 沿车身表面铺一条梯形面板：下沿 zbA→zbB、上沿 ztA→ztB，off 为外偏量 */
+  function stripPanel(sign, zbA, ztA, zbB, ztB, off, padTop, padBottom, mat, N) {
+    N = N || 10;
+    const pos = [], idx = [];
+    const add = (x, y, z) => { pos.push(x, y, z); return pos.length / 3 - 1; };
+    const bottom = [], top = [];
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const zb = zbA + (zbB - zbA) * t;
+      const yb = beltAt(zb) - (padBottom || 0);
+      bottom.push(add(sign * surfaceX(zb, yb, sign, off), yb, zb));
+      const zt = ztA + (ztB - ztA) * t;
+      const yt = Math.min(topY(zt) - 0.058, beltAt(zt) + 0.470) + (padTop || 0);
+      top.push(add(sign * surfaceX(zt, yt, sign, off), yt, zt));
+    }
+    for (let i = 0; i < N; i++) {
+      if (sign > 0) idx.push(bottom[i], top[i], top[i + 1], bottom[i], top[i + 1], bottom[i + 1]);
+      else idx.push(bottom[i], top[i + 1], top[i], bottom[i], bottom[i + 1], top[i + 1]);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    const m = new THREE.Mesh(g, mat);
+    m.renderOrder = 2;
+    return m;
+  }
+
+  [1, -1].forEach(s => {
+    // 1) 黑色窗框底衬（整块 DLO，外扩一点）
+    carRoot.add(stripPanel(s, DLO.zb0 + 0.018, DLO.zt0 + 0.020, DLO.zb1 - 0.014, DLO.zt1 - 0.012,      0.008, 0.020, -0.012, blackMat, 14));
+    // 2) 前门窗（后沿在 B 柱之前）
+    carRoot.add(stripPanel(s, DLO.zb0, DLO.zt0, -0.075, -0.075, 0.012, 0, 0, glassMat, 9));
+    // 3) 后门窗（前沿在 B 柱之后）
+    carRoot.add(stripPanel(s, -0.185, -0.185, -0.845, -0.845, 0.012, 0, 0, glassMat, 9));
+    // 4) 后角窗（C 柱与后门窗之间的小三角窗）
+    carRoot.add(stripPanel(s, -0.885, -0.885, DLO.zb1 + 0.010, DLO.zt1 + 0.004, 0.012, 0, 0, glassMat, 3));
+  });
+
+  /* ---------- 前风挡 / 后风挡：贴着车身顶面走的玻璃面片 ----------
+     用「从上方垂直射线实测车身顶面高度」的方式逐点取样，边缘是一条光滑参数曲线，
+     不再受车身四边形网格影响，因此 A 柱、C 柱处不会出现阶梯锯齿。 */
+  carRoot.updateMatrixWorld(true);
+  const _topRay = new THREE.Raycaster();
+  function topSurfaceY(x, z) {
+    _topRay.set(new THREE.Vector3(x, 3.4, z), new THREE.Vector3(0, -1, 0));
+    const h = _topRay.intersectObject(body, false);
+    return h.length ? h[0].point.y : null;
+  }
+  function glassTop(z0, z1, w0, w1, off, mat, NU, NV) {
+    const pos = [], idx = [];
+    for (let iv = 0; iv <= NV; iv++) {
+      const v = iv / NV;
+      const z = z0 + (z1 - z0) * v;
+      const w = w0 + (w1 - w0) * v;
+      for (let iu = 0; iu <= NU; iu++) {
+        const u = iu / NU * 2 - 1;
+        const x = u * w;
+        const y = topSurfaceY(x, z);
+        pos.push(x, (y === null ? 1.2 : y) + off, z);
+      }
+    }
+    for (let iv = 0; iv < NV; iv++) {
+      for (let iu = 0; iu < NU; iu++) {
+        const a = iv * (NU + 1) + iu, b = a + 1, c = a + NU + 1, d = c + 1;
+        idx.push(a, c, d, a, d, b);
+      }
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    const m = new THREE.Mesh(g, mat);
+    m.renderOrder = 3;
+    carRoot.add(m);
+    return m;
+  }
+  // 前风挡：下沿 z 0.868（雨刮槽前）→ 上沿 z 0.442（车顶前缘），宽度随 z 略收
+  const glassTopMat = glassMat.clone();
+  glassTopMat.side = THREE.DoubleSide;   // 顶面朝向随参数化而定，双面渲染避免背面剔除
+  /* 顶面朝上会反射环境光，清漆层太强会整块发白；这里压低清漆、提高不透明度，让它读起来是深色玻璃 */
+  glassTopMat.clearcoat = 0.06;
+  glassTopMat.clearcoatRoughness = 0.55;
+  glassTopMat.roughness = 0.46;
+  glassTopMat.metalness = 0.0;
+  glassTopMat.envMapIntensity = 0.02;   // 顶面朝上，环境反射会整块泛白，这里几乎关掉
+  glassTopMat.opacity = 0.95;
+  glassTopMat.color.setHex(0x0a1017);
+  glassTop(0.868, 0.442, 0.742, 0.672, 0.013, glassTopMat, 26, 18);
+  // 后风挡：上沿 z −0.972 → 下沿 z −1.596（尾箱盖前缘）
+  glassTop(-0.972, -1.596, 0.676, 0.606, 0.013, glassTopMat, 26, 18);
+  function seamLine(pts, opacity) {
+    const g = new THREE.BufferGeometry().setFromPoints(pts.map(p => new THREE.Vector3(p[0], p[1], p[2])));
+    const m = new THREE.LineBasicMaterial({ color: 0x0b0f15, transparent: true, opacity: opacity || 0.55 });
+    return new THREE.Line(g, m);
+  }
+  (function seams() {
+    const ys = [0.30, 0.45, 0.60, 0.75, 0.85, 0.93, 0.985];
+    // 前门前沿 / 后门后沿 / 后翼子板与尾门的缝
+    [1, -1].forEach(s => {
+      [[0.618, 0.55], [-0.792, 0.72], [-1.455, 0.45]].forEach(([z, op]) => {
+        const pts = ys.map(y => [s * (halfWidth(z, y) + 0.004), y, z]);
+        carRoot.add(seamLine(pts, op));
+      });
+      // 门板下沿（门与下裙的分界）
+      const lowPts = [];
+      for (let z = 0.60; z >= -0.78; z -= 0.14) lowPts.push([s * (halfWidth(z, 0.44) + 0.004), 0.44, z]);
+      carRoot.add(seamLine(lowPts, 0.45));
+    });
+    // 机盖两侧缝（沿机盖表面走，不再浮在半空）
+    [1, -1].forEach(s => {
+      const pts = [];
+      for (let z = 1.05; z <= 2.28; z += 0.12) {
+        const y = Math.min(topY(z) - 0.012, 0.99);
+        pts.push([s * surfaceX(z, y, s), y, z]);
+      }
+      carRoot.add(seamLine(pts, 0.5));
+    });
+  })();
+
+  /* =====================================================================
+     4. 车头 / 车尾 / 侧身细节
+     ===================================================================== */
+  function boxMesh(w, h, d, mat, x, y, z, parent) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    m.position.set(x, y, z);
+    m.castShadow = true;
+    (parent || carRoot).add(m);
+    return m;
+  }
+
+  /* 前灯组（左右各一）：深色灯腔 + 内嵌 LED 日行灯，贴在车头前脸上 */
+  const lensMat = new THREE.MeshStandardMaterial({ color: 0x141b24, roughness: 0.18, metalness: 0.75 });
+  [-1, 1].forEach(s => {
+    const lens = boxMesh(0.34, 0.085, 0.045, lensMat, s * 0.545, 0.688, 2.386);
+    lens.rotation.y = s * -0.10;
+    lens.rotation.z = s * 0.015;
+    const led = boxMesh(0.27, 0.016, 0.016, lampMat, s * 0.545, 0.714, 2.402);
+    led.rotation.y = s * -0.10;
+  });
+
+  /* 龙颜封闭式前脸：镀铬饰条 + 黑色格栅带 + 下进气口 */
+  boxMesh(1.20, 0.022, 0.030, chromeMat, 0, 0.752, 2.378);
+  boxMesh(1.06, 0.110, 0.032, trimMat, 0, 0.664, 2.394);
+  /* 格栅内的横向镀铬细条（与实车视频里的横向格栅一致） */
+  [0.692, 0.668, 0.644].forEach(y => boxMesh(0.98, 0.008, 0.014, chromeMat, 0, y, 2.408));
+  const intake = boxMesh(1.06, 0.120, 0.050, blackMat, 0, 0.428, 2.398);
+  intake.rotation.x = -0.06;
+
+  /* 前车牌（新能源绿牌） */
+  function plateTexture(text, bg) {
+    const w = 256, h = 84;
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d');
+    g.fillStyle = bg; g.fillRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = 3;
+    g.strokeRect(3, 3, w - 6, h - 6);
+    g.fillStyle = '#ffffff';
+    g.font = '600 34px "Microsoft YaHei",sans-serif';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(text, w / 2, h / 2 + 1);
+    const t = new THREE.CanvasTexture(c);
+    t.encoding = THREE.sRGBEncoding;
+    return t;
+  }
+  function plate(x, y, z, rotY, text) {
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.44, 0.145),
+      new THREE.MeshStandardMaterial({ map: plateTexture(text, '#18a058'), roughness: 0.55, metalness: 0.15 })
+    );
+    m.position.set(x, y, z);
+    m.rotation.y = rotY;
+    carRoot.add(m);
+    return m;
+  }
+  plate(0, 0.395, 2.407, 0, '秦EV 出行版');
+  plate(0, 0.620, -2.380, Math.PI, '秦EV 出行版');
+
+  /* =====================================================================
+     充电口盖板：直流快充口盖（前格栅中央的「秦」标）+ 交流慢充口盖（左后翼子板）
+     点击任一口盖 → 在点击位置旁边弹出对应的接口定义图
+     ===================================================================== */
+  const PORT_COVERS = {};
+  const PORT_HITS = [];       // 稍后并入 pickables（pickables 在后面才声明）
+
+  /* 直流快充口盖：「秦」标外形，盖板本身就是一个可点的实体 */
+  (function dcCover() {
+    const s = 256;
+    const c = document.createElement('canvas'); c.width = c.height = s;
+    const g = c.getContext('2d');
+    g.clearRect(0, 0, s, s);
+    // 外圈盖板
+    g.beginPath(); g.arc(s / 2, s / 2, s / 2 - 2, 0, Math.PI * 2);
+    g.fillStyle = '#12171f'; g.fill();
+    g.lineWidth = 7; g.strokeStyle = '#c9d3e0'; g.stroke();
+    g.beginPath(); g.arc(s / 2, s / 2, s / 2 - 20, 0, Math.PI * 2);
+    g.lineWidth = 2; g.strokeStyle = 'rgba(200,214,232,.45)'; g.stroke();
+    g.fillStyle = '#eaf1fb';
+    g.font = '600 118px "Microsoft YaHei",sans-serif';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('秦', s / 2, s / 2 + 8);
+    const tex = new THREE.CanvasTexture(c);
+    tex.encoding = THREE.sRGBEncoding;
+    const m = new THREE.Mesh(
+      new THREE.CircleGeometry(0.072, 40),
+      new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.35, metalness: 0.5 })
+    );
+    m.position.set(0, 0.700, 2.419);
+    m.name = '直流快充口盖';
+    m.userData.port = 'dc';
+    carRoot.add(m);
+    PORT_HITS.push(m);
+  })();
+
+  /* 交流慢充口盖：左后翼子板上一块随车身曲面走的盖板 + 一圈分缝线 */
+  (function acCover() {
+    const SIGN = -1;                       // −X = 车身右侧（实车慢充口在右后翼子板）
+    const z0 = -1.880, z1 = -1.700, y0 = 0.856, y1 = 0.984;
+    const NX = 4, NY = 4;
+    const pos = [], idx = [];
+    for (let iy = 0; iy <= NY; iy++) {
+      const y = y0 + (y1 - y0) * iy / NY;
+      for (let ix = 0; ix <= NX; ix++) {
+        const z = z0 + (z1 - z0) * ix / NX;
+        pos.push(SIGN * surfaceX(z, y, SIGN, 0.010), y, z);
+      }
+    }
+    for (let iy = 0; iy < NY; iy++) {
+      for (let ix = 0; ix < NX; ix++) {
+        const a = iy * (NX + 1) + ix, b = a + 1, c2 = a + NX + 1, d = c2 + 1;
+        if (SIGN > 0) idx.push(a, c2, d, a, d, b);
+        else idx.push(a, d, c2, a, b, d);
+      }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setIndex(idx);
+    geo.computeVertexNormals();
+    const cover = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+      color: 0xe9eef6, roughness: 0.40, metalness: 0.30, side: THREE.DoubleSide
+    }));
+    cover.name = '交流充电口盖';
+    cover.userData.port = 'ac';
+    carRoot.add(cover);
+    PORT_HITS.push(cover);
+
+    // 分缝线：盖板四周一圈，稍微外偏，读起来就是「一个可以打开的盖板」
+    const loop = [];
+    const steps = 16;
+    for (let i = 0; i <= steps; i++) {          // 上沿 z1 → z0
+      const z = z1 + (z0 - z1) * i / steps;
+      loop.push(new THREE.Vector3(SIGN * surfaceX(z, y1, SIGN, 0.012), y1, z));
+    }
+    for (let i = 0; i <= steps; i++) {          // 前沿 y1 → y0
+      const y = y1 + (y0 - y1) * i / steps;
+      loop.push(new THREE.Vector3(SIGN * surfaceX(z0, y, SIGN, 0.012), y, z0));
+    }
+    for (let i = 0; i <= steps; i++) {          // 下沿 z0 → z1
+      const z = z0 + (z1 - z0) * i / steps;
+      loop.push(new THREE.Vector3(SIGN * surfaceX(z, y0, SIGN, 0.012), y0, z));
+    }
+    for (let i = 0; i <= steps; i++) {          // 后沿 y0 → y1
+      const y = y0 + (y1 - y0) * i / steps;
+      loop.push(new THREE.Vector3(SIGN * surfaceX(z1, y, SIGN, 0.012), y, z1));
+    }
+    const lg = new THREE.BufferGeometry().setFromPoints(loop);
+    const line = new THREE.Line(lg, new THREE.LineBasicMaterial({ color: 0x0b0f15, transparent: true, opacity: 0.55 }));
+    carRoot.add(line);
+  })();
+
+  /* 充电口说明卡：点击口盖后出现在鼠标旁边 */
+  const PORT_INFO = {
+    ac: {
+      name: '交流充电座（慢充）',
+      img: 'ac-port.png',
+      cap: '交流充电口为 7 芯：L1 / L2 / L3 三相、N 中性线、PE 保护地，另有 CP（控制导引）与 CC（连接确认）两根低压信号线。插枪后 CC 先确认插枪到位，CP 用 PWM 占空比与车辆协商可用的充电电流，车载充电机（OBC）再把交流整流成直流给电池充电。'
+    },
+    dc: {
+      name: '直流快充座（快充）',
+      img: 'dc-port.jpg',
+      cap: '直流快充口为 9 芯：DC+ / DC− 两路直流主回路（大电流），中间为 PE 保护地，周围是 S+ / S− 通信线与低压辅助触点。快充时充电桩与 BMS 直接握手，由 BMS 控制接触器与充电电流，动力电池「直接」接受直流电，不经过 OBC。'
+    },
+    pack: {
+      name: '动力电池包（地板下）',
+      hint: '点击查看电池包实拍',
+      img: 'battery-pack.jpg',
+      cap: '动力电池包位于乘员舱地板下方、前后轴之间，通过螺栓与车身下纵梁固定。包内为模组 + BIC 采集板 + 高压接触器 + BMU 的分布式结构，前部布置高压接插件，冷却板贴在包体底面。检修前须断开维修开关并等待电容放电。'
+    },
+    bay: {
+      name: '前机舱总布置（实车）',
+      hint: '点击查看机舱实拍',
+      img: 'engine-bay.jpg',
+      cap: '前机舱从上到下依次为：三合一控制总成（中央铝壳）、电机控制器 MCU、驱动电机；副驾驶侧为 PTC 电加热器，驾驶员侧为 12V 低压蓄电池与其旁的前舱配电盒；橙色波纹管为高压线束。'
+    },
+    key: {
+      name: '智能钥匙模块（PEPS）实拍',
+      hint: '点击查看模块实拍',
+      img: 'unit-key.jpg',
+      cap: '智能钥匙模块安装在车身后部（后备箱内侧、主驾驶一侧的车身上），红色箭头指向它在白车身上的固定位置。模块外壳标签「智能钥匙系统控制器」，负责接收智能钥匙的低频/射频信号，完成无钥匙进入与一键启动的身份认证。'
+    },
+    bcm: {
+      name: 'BCM 车身控制模块实拍',
+      hint: '点击查看模块实拍',
+      img: 'unit-bcm.jpg',
+      cap: '左图为 BCM 在车内的安装位置：仪表台下方、驾驶员左腿前方，拆掉下护板即可看到；右图为模块本体，正面是多路保险丝与继电器插座，下端伸出多个线束插接器，是车身电器的「调度中心」。'
+    },
+    vcu: {
+      name: 'VCU 整车控制器实拍',
+      hint: '点击查看模块实拍',
+      img: 'unit-vcu.jpg',
+      cap: '整车控制器（VCU）本体：铝合金外壳 + 绿色控制板，板上可见主控芯片与驱动电路，下方为整车线束插接器。它采集驾驶员意图与各系统状态，向 MCU 下发扭矩指令，协调能量回收与高压上下电时序。'
+    }
+  };
+
+  const portCard = document.getElementById('portCard');
+  const portImg = document.getElementById('portImg');
+  const portName = document.getElementById('portName');
+  const portCap = document.getElementById('portCap');
+
+  function showPortCard(kind, ev) {
+    const info = PORT_INFO[kind];
+    if (!info) return;
+    portImg.src = info.img;
+    portName.textContent = info.name;
+    portCap.textContent = info.cap;
+    portCard.classList.add('show');
+    const rect = renderer.domElement.getBoundingClientRect();
+    const cw = Math.min(330, rect.width - 24);
+    const ch = portCard.offsetHeight || 380;
+    let x = ev.clientX - rect.left + 22;
+    let y = ev.clientY - rect.top - 40;
+    if (x + cw > rect.width - 12) x = ev.clientX - rect.left - cw - 22;
+    if (x < 8) x = 8;
+    if (y + ch > rect.height - 12) y = rect.height - ch - 12;
+    if (y < 8) y = 8;
+    portCard.style.left = x + 'px';
+    portCard.style.top = y + 'px';
+  }
+  document.getElementById('portClose').addEventListener('click', () => portCard.classList.remove('show'));
+
+
+  /* 尾灯 + 尾门镀铬条 + 后保险杠（都贴在 z=-2.355 的尾板外侧） */
+  boxMesh(1.18, 0.060, 0.030, tailMat, 0, 1.020, -2.372);
+  boxMesh(1.30, 0.018, 0.028, chromeMat, 0, 1.068, -2.374);
+  boxMesh(0.74, 0.090, 0.026, blackMat, 0, 0.470, -2.376);
+
+  /* 立柱：B 柱把侧面玻璃分成前后两块 */
+  [-1, 1].forEach(s => {
+    const bP = boxMesh(0.062, 0.36, 0.075, blackMat, s * 0.744, 1.205, -0.060);
+    bP.rotation.x = 0.02;
+  });
+
+  /* 后视镜（支臂 + 镜壳） */
+  [-1, 1].forEach(s => {
+    const arm = boxMesh(0.085, 0.030, 0.050, trimMat, s * (halfWidth(0.72, 1.02) - 0.010), 1.026, 0.735);
+    arm.rotation.z = s * 0.22;
+    const shell = boxMesh(0.070, 0.090, 0.175, paintMat, s * 0.958, 1.040, 0.720);
+    shell.rotation.y = s * -0.16;
+    const glass = boxMesh(0.012, 0.066, 0.140, chromeMat, s * 0.922, 1.040, 0.726);
+    glass.rotation.y = s * -0.16;
+  });
+
+  /* 门把手 */
+  [1, -1].forEach(s => {
+    [0.24, -0.62].forEach(z => {
+      const h = boxMesh(0.028, 0.030, 0.135, chromeMat, s * (halfWidth(z, 0.90) + 0.008), 0.905, z);
+      h.rotation.y = 0;
+    });
+  });
+
+  /* 侧裙装饰条 */
+  [1, -1].forEach(s => {
+    boxMesh(0.026, 0.044, 1.78, trimMat, s * (halfWidth(0, 0.30) - 0.008), 0.320, 0.00);
+  });
+
+  /* 车顶：本车型无天窗，车顶为一整块钣金（不画天窗） */
+
+  /* =====================================================================
+     5. 车轮
+     ===================================================================== */
+  function rimTexture() {
+    const s = 256;
+    const c = document.createElement('canvas'); c.width = c.height = s;
+    const g = c.getContext('2d');
+    g.fillStyle = '#161b24'; g.fillRect(0, 0, s, s);
+    g.translate(s / 2, s / 2);
+    g.fillStyle = '#aeb9c7';
+    for (let i = 0; i < 5; i++) {
+      g.save();
+      g.rotate(i * Math.PI * 2 / 5);
+      g.beginPath();
+      g.moveTo(-12, -22); g.lineTo(12, -22); g.lineTo(21, -104); g.lineTo(-21, -104);
+      g.closePath(); g.fill();
+      g.restore();
+    }
+    g.beginPath(); g.arc(0, 0, 40, 0, Math.PI * 2); g.fillStyle = '#98a4b3'; g.fill();
+    g.beginPath(); g.arc(0, 0, 18, 0, Math.PI * 2); g.fillStyle = '#2b333f'; g.fill();
+    g.beginPath(); g.arc(0, 0, 8, 0, Math.PI * 2); g.fillStyle = '#c9d2df'; g.fill();
+    const tex = new THREE.CanvasTexture(c);
+    tex.anisotropy = 8;
+    return tex;
+  }
+  const rimMat = new THREE.MeshStandardMaterial({ map: rimTexture(), metalness: 0.85, roughness: 0.30 });
+  const rimSideMat = new THREE.MeshStandardMaterial({ color: 0x2a313b, metalness: 0.8, roughness: 0.35 });
+
+  function buildWheel(x, z, steer) {
+    const g = new THREE.Group(); g.position.set(x, CAR.wheelR, z);
+    const tire = new THREE.Mesh(new THREE.CylinderGeometry(CAR.wheelR - 0.005, CAR.wheelR - 0.005, CAR.wheelW, 36), tireMat);
+    tire.rotation.z = Math.PI / 2;
+    tire.castShadow = true; tire.receiveShadow = true;
+    g.add(tire);
+    const rimD = 0.203;
+    const rim = new THREE.Mesh(
+      new THREE.CylinderGeometry(rimD, rimD, CAR.wheelW + 0.006, 24),
+      [rimSideMat, rimMat, rimMat]
+    );
+    rim.rotation.z = Math.PI / 2;
+    rim.castShadow = true;
+    g.add(rim);
+    if (steer) g.rotation.y = steer;
+    carRoot.add(g);
+    return g;
+  }
+  buildWheel(1 * CAR.trackHalf, CAR.axleF, 0.085);
+  buildWheel(-1 * CAR.trackHalf, CAR.axleF, 0.085);
+  buildWheel(1 * CAR.trackHalf, CAR.axleR, 0);
+  buildWheel(-1 * CAR.trackHalf, CAR.axleR, 0);
+
+  /* 轮拱内衬（深色圆盘，制造「轮拱深处」的暗部） */
+  [1, -1].forEach(s => {
+    [CAR.axleF, CAR.axleR].forEach(z => {
+      const disc = new THREE.Mesh(
+        new THREE.CircleGeometry(CAR.wheelR - 0.040, 28),
+        new THREE.MeshBasicMaterial({ color: 0x05070a, side: THREE.DoubleSide })
+      );
+      disc.position.set(s * (CAR.trackHalf - 0.085), CAR.wheelR, z);
+      disc.rotation.y = s * Math.PI / 2;
+      carRoot.add(disc);
+
+      // 轮眉（黑色饰条，勾勒轮拱轮廓，实车上很显眼）
+      const arch = new THREE.Mesh(
+        new THREE.TorusGeometry(0.432, 0.026, 8, 30, Math.PI),
+        blackMat
+      );
+      arch.position.set(s * (halfWidth(z, 0.42) - 0.012), 0.296, z);
+      arch.rotation.y = s * Math.PI / 2;
+      carRoot.add(arch);
+    });
+  });
+
+  /* =====================================================================
+     6. 控制单元 + 安装位置标注
+     ===================================================================== */
+  const unitRoot = new THREE.Group();
+  carRoot.add(unitRoot);
+
+  const labels = [];        // {unit, sprite, line, ring}
+  const pickables = [];     // 可点选对象（环 + 模块盒）
+  PORT_HITS.forEach(m => pickables.push(m));   // 两个充电口盖也参与拾取
+
+  const ringTexCache = {};
+  function makeRingGlow(hex) {
+    const s = 128;
+    const c = document.createElement('canvas'); c.width = c.height = s;
+    const g = c.getContext('2d');
+    const rad = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    const col = '#' + hex.toString(16).padStart(6, '0');
+    rad.addColorStop(0, 'rgba(255,255,255,0.95)');
+    rad.addColorStop(0.35, col);
+    rad.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = rad; g.fillRect(0, 0, s, s);
+    const t = new THREE.CanvasTexture(c);
+    return t;
+  }
+
+  function makeLabel(text, colorHex) {
+    const fs = 46, padX = 24, h = 104;
+    const c = document.createElement('canvas');
+    let ctx = c.getContext('2d');
+    ctx.font = '600 ' + fs + 'px "Microsoft YaHei","PingFang SC",sans-serif';
+    const tw = Math.ceil(ctx.measureText(text).width);
+    c.width = tw + padX * 2;
+    c.height = h;
+    ctx = c.getContext('2d');
+    ctx.font = '600 ' + fs + 'px "Microsoft YaHei","PingFang SC",sans-serif';
+    const r = 16, x = 3, y = 3, w = c.width - 6, hh = h - 6;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + hh, r);
+    ctx.arcTo(x + w, y + hh, x, y + hh, r);
+    ctx.arcTo(x, y + hh, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(7,12,19,0.90)';
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#' + colorHex.toString(16).padStart(6, '0');
+    ctx.stroke();
+    ctx.fillStyle = '#eef5ff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, c.width / 2, h / 2 + 2);
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.minFilter = THREE.LinearFilter;
+    tex.encoding = THREE.sRGBEncoding;
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false });
+    const sp = new THREE.Sprite(mat);
+    const H = 0.135;
+    let sw = H * c.width / c.height, sh = H;
+    const MAXW = 1.85;
+    if (sw > MAXW) { sh = MAXW * c.height / c.width; sw = MAXW; }
+    sp.scale.set(sw, sh, 1);
+    sp.renderOrder = 980;
+    return sp;
+  }
+
+  UNITS.forEach(u => {
+    const p = new THREE.Vector3(u.pos[0], u.pos[1], u.pos[2]);
+
+    /* 模块实体（透视车身时可见） */
+    const mat = new THREE.MeshStandardMaterial({
+      color: u.color, roughness: 0.48, metalness: 0.35,
+      emissive: u.color, emissiveIntensity: 0.10
+    });
+    const s = u.size || [0.16, 0.08, 0.12];
+    let geo;
+    if (u.shape === 'cyl') {
+      geo = new THREE.CylinderGeometry(s[0], s[0], s[1], 20);
+      geo.rotateZ(Math.PI / 2);              // 轴向沿车身 X（横置电机）
+    } else {
+      geo = new THREE.BoxGeometry(s[0], s[1], s[2]);
+    }
+    const box = new THREE.Mesh(geo, mat);
+    box.position.copy(p);
+    box.castShadow = false;
+    box.userData.unitId = u.id;
+    unitRoot.add(box);
+    pickables.push(box);
+
+    /* 位置标记：环形光点（depthTest false，永远可见） */
+    const ring = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: makeRingGlow(u.color), transparent: true, depthTest: false, depthWrite: false,
+      blending: THREE.AdditiveBlending, opacity: 0.95
+    }));
+    ring.scale.set(0.20, 0.20, 1);
+    ring.position.copy(p);
+    ring.renderOrder = 970;
+    ring.userData.unitId = u.id;
+    unitRoot.add(ring);
+    pickables.push(ring);
+
+    /* 引出线：模块 → 标签 */
+    const lp = p.clone().add(new THREE.Vector3(u.labelOff[0], u.labelOff[1], u.labelOff[2]));
+    const lineGeo = new THREE.BufferGeometry().setFromPoints([p, lp]);
+    const line = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({
+      color: u.color, transparent: true, opacity: 0.75, depthTest: false
+    }));
+    line.renderOrder = 975;
+    unitRoot.add(line);
+
+    const label = makeLabel(u.short, u.color);
+    label.position.copy(lp);
+    label.userData.unitId = u.id;      // 标签本身也可点选
+    unitRoot.add(label);
+    pickables.push(label);
+
+    labels.push({ unit: u, sprite: label, line, ring, box, pos: p, labelPos: lp, mat });
+  });
+
+  /* ---------- 动力电池包：乘员舱地板下的扁平包体（点击弹出实车拆解图） ---------- */
+  (function tractionPack() {
+    const packW = 1.44, packH = 0.150, packL = 2.46;
+    const cz = -0.06, cy = 0.236;
+    const shellMat = new THREE.MeshStandardMaterial({ color: 0x46515f, roughness: 0.58, metalness: 0.42 });
+    const ribMat = new THREE.MeshStandardMaterial({ color: 0x2c3540, roughness: 0.66, metalness: 0.35 });
+    const hvMat = new THREE.MeshStandardMaterial({ color: 0xc2621f, roughness: 0.5, metalness: 0.3 });
+
+    const shell = new THREE.Mesh(new THREE.BoxGeometry(packW, packH, packL), shellMat);
+    shell.position.set(0, cy, cz);
+    shell.userData.port = 'pack';
+    carRoot.add(shell);
+    pickables.push(shell);
+
+    // 底部横筋（从车底看能认出是电池包）
+    [-0.92, -0.31, 0.31, 0.92].forEach(dz => {
+      const rib = new THREE.Mesh(new THREE.BoxGeometry(packW - 0.05, 0.022, 0.052), ribMat);
+      rib.position.set(0, cy - packH / 2 - 0.010, cz + dz);
+      carRoot.add(rib);
+    });
+    // 前端高压接插件（朝车头，与机舱里的高压线束呼应）
+    const conn = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.08, 0.07), hvMat);
+    conn.position.set(0.36, cy + 0.02, cz + packL / 2 + 0.02);
+    carRoot.add(conn);
+
+    // 位置标记：光点 + 引出线 + 标签
+    const p = new THREE.Vector3(0, cy - 0.02, cz + 0.86);
+    const ring = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: makeRingGlow(0x39d98a), transparent: true, depthTest: false, depthWrite: false,
+      blending: THREE.AdditiveBlending, opacity: 0.95
+    }));
+    ring.scale.set(0.20, 0.20, 1);
+    ring.position.copy(p);
+    ring.renderOrder = 970;
+    ring.userData.port = 'pack';
+    carRoot.add(ring);
+    pickables.push(ring);
+
+    const lp = p.clone().add(new THREE.Vector3(0.02, -0.13, 0.98));
+    const line = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([p, lp]),
+      new THREE.LineBasicMaterial({ color: 0x39d98a, transparent: true, opacity: 0.7, depthTest: false })
+    );
+    line.renderOrder = 975;
+    carRoot.add(line);
+
+    const label = makeLabel('动力电池包', 0x39d98a);
+    label.position.copy(lp);
+    label.userData.port = 'pack';
+    carRoot.add(label);
+    pickables.push(label);
+  })();
+
+  const labelRoot = { sprites: labels.map(l => l.sprite), lines: labels.map(l => l.line), rings: labels.map(l => l.ring) };
+
+  /* =====================================================================
+     7. 状态与 UI
+     ===================================================================== */
+  const state = { selected: null, hover: null, xray: false, showLabels: true, spin: false };
+  let mobile = false;                 // 手机端布局开关（由 syncMobile() 维护）
+
+  const listEl = document.getElementById('list');
+  const infoEl = document.getElementById('info');
+  const tipEl = document.getElementById('tip');
+  const toastEl = document.getElementById('toast');
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(() => toastEl.classList.remove('show'), 2000);
+  }
+
+  function buildList() {
+    listEl.innerHTML = '';
+    UNITS.forEach(u => {
+      const el = document.createElement('div');
+      el.className = 'item';
+      el.dataset.id = u.id;
+      el.innerHTML =
+        '<span class="dot" style="background:#' + u.color.toString(16).padStart(6, '0') + '"></span>' +
+        '<span style="flex:1"><span class="nm">' + u.short + '</span>' +
+        '<span class="loc">' + u.loc + '</span></span>' +
+        '<span class="tag">已选中</span>';
+      el.addEventListener('click', () => selectUnit(u.id, false));
+      listEl.appendChild(el);
+    });
+  }
+
+  const DEFAULT_INFO =
+    '<div class="r-title">控制单元安装位置</div>' +
+    '<div class="r-kind">秦 EV · 整车电气</div>' +
+    '<div class="hint">' +
+    '· <b>左键拖拽</b> 旋转，<b>滚轮</b> 缩放，<b>右键</b> 平移<br>' +
+    '· 点击车身上的<span class="kbd">光点标注</span>或左侧列表查看详情<br>' +
+    '· 打开<span class="kbd">透视车身</span>可看到控制单元在车内的实际位置<br>' +
+    '· 选中后可<span class="kbd">对准该部件</span>，镜头会自动推近' +
+    '</div>' +
+    '<div class="note">本页面为教学示意模型：车身尺寸按实车比例（4765×1837×1515 mm，轴距 2718 mm）重建，' +
+    '控制单元位置依据电路图与维修手册常见布置标注，不代替实车拆装手册。</div>';
+
+  function renderInfo() {
+    if (!state.selected) { infoEl.innerHTML = DEFAULT_INFO; return; }
+    const u = UNITS.find(x => x.id === state.selected);
+    if (!u) { infoEl.innerHTML = DEFAULT_INFO; return; }
+    let h = '';
+    h += '<div class="r-title">' + u.name + '</div>';
+    h += '<div class="r-kind ' + (u.hv ? 'hv' : '') + '">' + (u.hv ? '高压部件' : '低压控制单元') + '</div>';
+    h += '<div class="blk"><div class="k">安装位置</div><div class="v">' + u.loc + '</div></div>';
+    h += '<div class="blk"><div class="k">所属系统</div><div class="v">' + u.sys + '</div></div>';
+    h += '<div class="blk"><div class="k">功能说明</div><div class="v">' + u.func + '</div></div>';
+    h += '<div class="blk"><div class="k">技术参数</div><div class="v hi">' + u.spec + '</div></div>';
+    h += '<div class="note ' + (u.hv ? 'hv' : '') + '">' + u.note + '</div>';
+    h += '<div class="btns">' +
+      '<button class="btn primary" data-act="focus">对准该部件</button>' +
+      '<button class="btn" data-act="home">返回整车视角</button>' +
+      '</div>';
+    infoEl.innerHTML = h;
+    infoEl.scrollTop = 0;
+  }
+
+  function refreshList() {
+    Array.from(listEl.children).forEach(el => {
+      el.classList.toggle('sel', el.dataset.id === state.selected);
+    });
+  }
+
+  function applyHighlight() {
+    labels.forEach(l => {
+      const on = state.selected === l.unit.id;
+      const hover = state.hover === l.unit.id;
+      l.mat.emissiveIntensity = on ? 1.15 : hover ? 0.8 : 0.35;
+      l.ring.scale.setScalar(on ? 0.30 : hover ? 0.26 : 0.20);
+      l.sprite.material.opacity = (on || hover || !state.selected) ? 1 : 0.62;
+      l.line.material.opacity = (on || hover) ? 1 : 0.62;
+    });
+  }
+
+  function selectUnit(id, focus) {
+    state.selected = id;
+    refreshList();
+    renderInfo();
+    applyHighlight();
+    if (focus) focusUnit(id);
+    if (mobile && id) openSheet();          // 手机端：选中后自动弹出底部详情面板
+  }
+
+  /* ---------- 镜头：对准某控制单元 / 回到整车 ---------- */
+  let camTween = null;
+  function tweenTo(pos, target, dur) {
+    camTween = {
+      p0: camera.position.clone(), p1: pos.clone(),
+      t0: controls.target.clone(), t1: target.clone(),
+      t: 0, dur: dur || 0.95
+    };
+  }
+  function focusUnit(id) {
+    const u = UNITS.find(x => x.id === id);
+    if (!u) return;
+    const target = new THREE.Vector3(u.pos[0], u.pos[1], u.pos[2]);
+    // 控制单元都在车身内部，先切到透视状态，否则只能看到外壳
+    if (!state.xray) setXray(true);
+    const dir = camera.position.clone().sub(controls.target);
+    dir.y = Math.max(dir.y, 1.05);          // 略高一点的俯视角，避免贴脸
+    dir.normalize();
+    const dist = 4.55;
+    tweenTo(target.clone().add(dir.multiplyScalar(dist)), target, 0.95);
+  }
+  function homeView() {
+    tweenTo(homePos(), HOME.target, 1.0);
+  }
+  controls.addEventListener('start', () => { camTween = null; });
+
+  /* ---------- 开关 ---------- */
+  const swXray = document.getElementById('swXray');
+  const swLabel = document.getElementById('swLabel');
+  const swSpin = document.getElementById('swSpin');
+
+  function setXray(on) {
+    state.xray = on;
+    swXray.classList.toggle('on', on);
+    paintMat.transparent = true;
+    paintMat.opacity = on ? 0.17 : 1.0;
+    paintMat.depthWrite = !on;
+    paintMat.needsUpdate = true;
+    glassMat.opacity = on ? 0.22 : 0.86;
+    glassMat.depthWrite = !on;
+    glassMat.needsUpdate = true;
+    blackMat.opacity = on ? 0.35 : 1.0;
+    blackMat.transparent = on;
+    trimMat.opacity = on ? 0.35 : 1.0;
+    trimMat.transparent = on;
+    tailMat.opacity = on ? 0.5 : 1.0;
+    tailMat.transparent = on;
+  }
+  swXray.addEventListener('click', () => {
+    setXray(!state.xray);
+    toast(state.xray ? '已透视车身，可看到控制单元在车内的位置' : '已恢复车身外表');
+  });
+
+  swLabel.addEventListener('click', () => {
+    state.showLabels = !state.showLabels;
+    swLabel.classList.toggle('on', state.showLabels);
+    labels.forEach(l => {
+      l.sprite.visible = state.showLabels;
+      l.line.visible = state.showLabels;
+      l.ring.visible = state.showLabels;
+    });
+  });
+
+  swSpin.addEventListener('click', () => {
+    state.spin = !state.spin;
+    swSpin.classList.toggle('on', state.spin);
+    controls.autoRotate = state.spin;
+  });
+
+  infoEl.addEventListener('click', ev => {
+    const b = ev.target.closest('[data-act]');
+    if (!b) return;
+    if (b.dataset.act === 'focus') focusUnit(state.selected);
+    if (b.dataset.act === 'home') homeView();
+  });
+
+  /* =====================================================================
+     8. 拾取（标注光点 / 模块盒）
+     ===================================================================== */
+  const raycaster = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+  const spriteRay = new THREE.Vector2();
+
+  function pick(ev) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    ndc.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+    ndc.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(ndc, camera);
+    const hits = raycaster.intersectObjects(pickables, false);
+    if (hits.length) {
+      const ud = hits[0].object.userData;
+      return { id: ud.unitId || null, port: ud.port || null };
+    }
+    // Sprite 需要单独用「屏幕距离」判断，Raycaster 对 Sprite 的命中范围偏小
+    let best = null, bestD = 26;
+    labels.forEach(l => {
+      const v = l.ring.position.clone().project(camera);
+      const sx = (v.x * 0.5 + 0.5) * rect.width;
+      const sy = (-v.y * 0.5 + 0.5) * rect.height;
+      const d = Math.hypot(sx - (ev.clientX - rect.left), sy - (ev.clientY - rect.top));
+      if (v.z < 1 && d < bestD) { bestD = d; best = l.unit.id; }
+    });
+    return best ? { id: best, port: null } : null;
+  }
+
+  renderer.domElement.addEventListener('pointermove', ev => {
+    const hit = pick(ev);
+    const rect = renderer.domElement.getBoundingClientRect();
+    if (hit && hit.port) {
+      state.hover = null;
+      tipEl.textContent = PORT_INFO[hit.port].name + ' · ' + (PORT_INFO[hit.port].hint || '点击查看接口定义');
+      tipEl.style.left = (ev.clientX - rect.left + 14) + 'px';
+      tipEl.style.top = (ev.clientY - rect.top + 14) + 'px';
+      tipEl.classList.add('show');
+      renderer.domElement.style.cursor = 'pointer';
+      applyHighlight();
+      return;
+    }
+    const id = hit && hit.id;
+    if (id) {
+      const u = UNITS.find(x => x.id === id);
+      state.hover = id;
+      tipEl.textContent = u.short + ' · ' + u.loc;
+      tipEl.style.left = (ev.clientX - rect.left + 14) + 'px';
+      tipEl.style.top = (ev.clientY - rect.top + 14) + 'px';
+      tipEl.classList.add('show');
+      renderer.domElement.style.cursor = 'pointer';
+    } else {
+      state.hover = null;
+      tipEl.classList.remove('show');
+      renderer.domElement.style.cursor = 'grab';
+    }
+    applyHighlight();
+  });
+
+  renderer.domElement.addEventListener('pointerleave', () => {
+    state.hover = null;
+    tipEl.classList.remove('show');
+    applyHighlight();
+  });
+
+  let downPos = null;
+  renderer.domElement.addEventListener('pointerdown', ev => { downPos = { x: ev.clientX, y: ev.clientY }; });
+  renderer.domElement.addEventListener('pointerup', ev => {
+    if (!downPos) return;
+    const dx = ev.clientX - downPos.x, dy = ev.clientY - downPos.y;
+    downPos = null;
+    if (Math.hypot(dx, dy) > 6) return;
+    const hit = pick(ev);
+    if (!hit) return;
+    if (hit.port) { showPortCard(hit.port, ev); return; }
+    if (hit.id) {
+      selectUnit(hit.id, false);
+      const u = UNITS.find(x => x.id === hit.id);
+      if (u && u.card) showPortCard(u.card, ev);        // KEY / BCM / VCU：弹出模块实拍
+      else if (u && u.bay) showPortCard('bay', ev);     // 前机舱部件：弹出机舱实拍
+    }
+  });
+
+  /* =====================================================================
+     8.5 手机端适配：顶部操作条 + 左侧抽屉 + 底部详情面板
+     ------------------------------------------------------------------ */
+  const leftPanel = document.getElementById('left');
+  const rightPanel = document.getElementById('right');
+  const mback = document.getElementById('mback');
+  const mMenu = document.getElementById('mMenu');
+  const mInfo = document.getElementById('mInfo');
+  const mClose = document.getElementById('mClose');
+
+  function openDrawer() { leftPanel.classList.add('open'); mback.classList.add('show'); }
+  function closeDrawer() { leftPanel.classList.remove('open'); syncBackdrop(); }
+  function openSheet() { rightPanel.classList.add('open'); syncBackdrop(); }
+  function closeSheet() { rightPanel.classList.remove('open'); syncBackdrop(); }
+  function syncBackdrop() {
+    const any = leftPanel.classList.contains('open');   // 详情面板不压遮罩，避免挡住车身
+    mback.classList.toggle('show', any && mobile);
+  }
+  if (mMenu) mMenu.addEventListener('click', () => {
+    if (leftPanel.classList.contains('open')) closeDrawer(); else openDrawer();
+  });
+  if (mInfo) mInfo.addEventListener('click', () => {
+    toast('单指拖动旋转 · 双指捏合缩放 · 双指拖动平移 · 点击车上的光点看详情');
+  });
+  if (mClose) mClose.addEventListener('click', closeSheet);
+  if (mback) mback.addEventListener('click', () => { closeDrawer(); closeSheet(); });
+
+  /* 列表项点击后自动收起抽屉，避免挡住模型 */
+  document.getElementById('list').addEventListener('click', () => { if (mobile) closeDrawer(); });
+
+  /* 手机端相机：竖屏时把镜头拉远，保证整车横向装得下 */
+  function homePos() {
+    const a = camera.aspect;
+    if (!mobile && a >= 1.0) return HOME.pos.clone();
+    /* 窄屏：抬高机位（斜俯视，车身在画面里占得更满）+ 按画面宽度反算距离 */
+    const portrait = a < 0.82;
+    const dir = portrait
+      ? new THREE.Vector3(0.52, 0.42, 0.74).normalize()
+      : HOME.pos.clone().sub(HOME.target).normalize();
+    const visW = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * a;  // 每 1m 距离的可见宽度
+    const need = portrait ? 5.05 : 5.40;                                      // 需要的画面宽度（米）
+    const d = Math.max(10.1, need / visW);
+    return HOME.target.clone().addScaledVector(dir, d);
+  }
+
+  function syncMobile() {
+    const w = window.innerWidth, h = window.innerHeight;
+    const on = w <= 820 || (w <= 980 && h <= 560);
+    if (on === mobile && document.body.classList.contains('mobile') === on) return;
+    mobile = on;
+    document.body.classList.toggle('mobile', on);
+    if (!on) { leftPanel.classList.remove('open'); rightPanel.classList.remove('open'); mback.classList.remove('show'); }
+    else { closeDrawer(); closeSheet(); }
+  }
+
+  /* =====================================================================
+     9. 自适应 + 主循环
+     ===================================================================== */
+  function onResize() {
+    const w = viewport.clientWidth, h = viewport.clientHeight;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h, false);
+    syncMobile();
+  }
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', () => setTimeout(onResize, 260));
+  syncMobile();
+
+  const clock = new THREE.Clock();
+  let lastNow = performance.now();
+
+  function tick(now) {
+    requestAnimationFrame(tick);
+    const dt = Math.min((now - lastNow) / 1000, 0.05);
+    lastNow = now;
+
+    if (camTween) {
+      camTween.t += dt;
+      const k = Math.min(camTween.t / camTween.dur, 1);
+      const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      camera.position.lerpVectors(camTween.p0, camTween.p1, e);
+      controls.target.lerpVectors(camTween.t0, camTween.t1, e);
+      if (k >= 1) camTween = null;
+    }
+
+    // 标注光点做轻微呼吸，便于在深色车身里定位
+    const t = now / 1000;
+    labels.forEach((l, i) => {
+      const base = state.selected === l.unit.id ? 0.30 : 0.20;
+      l.ring.scale.setScalar(base * (1 + 0.08 * Math.sin(t * 2.2 + i)));
+    });
+
+    controls.update();
+    renderer.render(scene, camera);
+  }
+
+  /* =====================================================================
+     10. 启动
+     ===================================================================== */
+  buildList();
+  setXray(false);
+  applyHighlight();
+  onResize();
+  renderInfo();
+  /* 竖屏手机上先把镜头拉到「整车装得下」的位置，避免一进来只看得到半个车门 */
+  camera.position.copy(homePos());
+  controls.target.copy(HOME.target);
+  controls.update();
+  requestAnimationFrame(tick);
+
+  setTimeout(() => {
+    const ld = document.getElementById('loading');
+    ld.classList.add('hide');
+    setTimeout(() => ld.remove(), 600);
+  }, 220);
+
+  /* 调试 / 二次开发入口 */
+  window.__QIN_EV__ = {
+    scene, camera, controls, renderer, carRoot, labels, UNITS, CAR, state,
+    selectUnit, focusUnit, homeView, setXray,
+    countMeshes() {
+      let n = 0;
+      scene.traverse(o => { if (o.isMesh) n++; });
+      return n;
+    }
+  };
+
+  /* =====================================================================
+     【模型替换说明】
+     —— 若要换成真实厂家的 GLB / GLTF 模型：
+     1. 引入加载器（r128 非模块化版）：
+        <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"><\/script>
+     2. 在「启动」之前加载，并按 partId 映射到 UNIT 上：
+        const loader = new THREE.GLTFLoader();
+        loader.load('qin_plus_ev.glb', (gltf) => {
+          const model = gltf.scene;          // 单位需为米、车头朝 +Z、车轮落在 y=0
+          model.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+          carRoot.clear();                    // 移除程序化车身
+          carRoot.add(model);
+        });
+     3. UNITS 的 pos 是「车身局部坐标」，与程序化建模一致；
+        真实模型若原点/朝向不同，请给 model 套一层 Group 做平移、缩放、旋转校准。
+     4. 标注光点、引出线、标签都挂在 unitRoot（carRoot 的子节点）上，
+        替换车身后无需改动，只要 UNITS 的 pos 与真实模型对齐即可。
+     5. 若真实模型自带材质，请把 paintMat / glassMat 换成模型自带材质，
+        并保留 setXray() 里的 opacity / transparent 逻辑，透视功能即可继续工作。
+     ===================================================================== */
+})();
+</script>
+</body>
+</html>
